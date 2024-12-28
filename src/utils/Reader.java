@@ -1,100 +1,159 @@
 package utils;
 
 import java.util.Scanner;
+import utils.ComparisonEvaluator;
 
 public class Reader {
-    private final VariableStorage variableStorage; // Reference to the variable storage for managing variables
-    private final ArithmeticEvaluator arithmeticEvaluator; // Reference to the arithmetic evaluator
+    private final VariableStorage variableStorage;
+    private final ArithmeticEvaluator arithmeticEvaluator;
+    private final ComparisonEvaluator comparisonEvaluator;
 
-    // Constructor to initialize the reader with the given VariableStorage and ArithmeticEvaluator
     public Reader(VariableStorage variableStorage) {
         this.variableStorage = variableStorage;
-        this.arithmeticEvaluator = new ArithmeticEvaluator(variableStorage); // Initialize the evaluator
+        this.arithmeticEvaluator = new ArithmeticEvaluator(variableStorage);
+        this.comparisonEvaluator = new ComparisonEvaluator(variableStorage);
     }
 
-    // Starts the reader, reading and processing commands from the terminal
     public void start() {
         System.out.println("Welcome to MiniKotlin reader!");
         System.out.println("Type 'help' for a list of commands.");
 
-        Scanner scanner = new Scanner(System.in); // Scanner for reading user input
+        Scanner scanner = new Scanner(System.in);
 
-        // Main loop for processing commands
         while (true) {
-            System.out.print("> "); // Prompt for user input
-            String input = scanner.nextLine().trim(); // Read and trim user input
+            System.out.print("> ");
+            String input = scanner.nextLine().trim();
+            System.out.println("Input received: " + input);  // Debugging line
 
-            if (input.isEmpty()) continue; // Skip empty input
+            if (input.isEmpty()) continue;
 
             try {
-                processCommand(input); // Process the user command
+                processCommand(input);
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage()); // Print error messages for exceptions
+                System.out.println("Error: " + e.getMessage());
             }
         }
     }
 
-    // Processes a single command based on the input
+
     private void processCommand(String input) {
-        if (input.startsWith("var ")) {
-            processVariableDeclaration(input); // Handle variable declarations
+        if (input.startsWith("if")) {
+            processIfStatement(input);  // Route the if statement properly
+        } else if (input.startsWith("while")) {
+            processWhileLoop(input);
+        } else if (input.startsWith("var ")) {
+            processVariableDeclaration(input);
         } else if (input.startsWith("print(")) {
-            processPrint(input); // Handle print statements
+            processPrint(input);
         } else if (input.equals("list")) {
-            variableStorage.listVariables(); // List all stored variables
+            variableStorage.listVariables();
         } else if (input.equals("help")) {
-            displayHelp(); // Show help message
+            displayHelp();
         } else if (input.equals("exit")) {
-            exitInterpreter(); // Exit the interpreter
+            exitInterpreter();
         } else {
-            System.out.println("Error: Unknown command."); // Handle unknown commands
+            System.out.println("Error: Unknown command.");
         }
     }
 
-    // Processes a variable declaration command (example var x = a + b)
-    private void processVariableDeclaration(String input) {
-        String[] parts = input.substring(4).split("="); // Remove "var " prefix and split by "="
 
+
+
+    private void processAssignment(String input) {
+        String[] parts = input.split("=");
         if (parts.length != 2) {
-            System.out.println("Syntax error: Invalid variable declaration.");
-            return;
+            throw new IllegalArgumentException("Invalid assignment: " + input);
         }
 
-        String name = parts[0].trim(); // Extract variable name
-        String value = parts[1].trim(); // Extract the value to assign
-        Object parsedValue = evaluateExpression(value); // Evaluate the expression (arithmetic)
-        variableStorage.setVariable(name, parsedValue); // Store the variable
+        String variableName = parts[0].trim();
+        String valueExpression = parts[1].trim();
+        Object value = evaluateExpression(valueExpression);
+
+        variableStorage.setVariable(variableName, value);
     }
 
-    // Processes a print command (example print(x))
-    private void processPrint(String input) {
-        if (!input.startsWith("print(") || !input.endsWith(")")) {
-            System.out.println("Syntax error: Invalid print statement.");
-            return;
+
+    private void processWhileLoop(String input) {
+        System.out.println("Processing while loop: " + input); // Debugging line
+
+        // Ensure the while loop starts with "while(" and ends with ")"
+        if (!input.startsWith("while(") || !input.contains("){")) {
+            throw new IllegalArgumentException("Syntax error: Invalid while loop.");
         }
 
-        String content = input.substring(6, input.length() - 1).trim(); // Remove "print(" and ")"
-        Object result;
+        // Extract the condition between "while(" and ")"
+        String condition = input.substring(input.indexOf("(") + 1, input.indexOf(")")).trim();
+        // Extract the body between "{ and }"
+        String body = input.substring(input.indexOf("{") + 1, input.lastIndexOf("}")).trim();
 
-        if (variableStorage.hasVariable(content)) {
-            result = variableStorage.getVariable(content); // Fetch the variable value if it exists
+        // Debugging: Check if we are getting the correct condition and body
+        System.out.println("Condition: " + condition);  // Debugging line
+        System.out.println("Body: " + body);  // Debugging line
+
+        // Loop until the condition is false
+        while (evaluateCondition(condition)) {
+            // Split the body by semicolon and process each statement
+            String[] statements = body.split(";");
+            for (String statement : statements) {
+                statement = statement.trim();
+                // Process each statement inside the loop
+                if (statement.startsWith("print(")) {
+                    processPrint(statement);
+                } else {
+                    processAssignment(statement);  // This will handle the assignment like x = x + 1
+                }
+            }
+
+            // Re-evaluate the condition after executing the body
+            // We need to ensure that the condition is evaluated again with the updated variable values
+            condition = input.substring(input.indexOf("(") + 1, input.indexOf(")")).trim();
+        }
+    }
+
+    private void processIfStatement(String input) {
+        // Ensure the if statement has parentheses and curly braces
+        if (input.startsWith("if") && input.contains("(") && input.contains(")")) {
+            // Extract the condition inside the parentheses
+            String conditionPart = input.substring(input.indexOf("(") + 1, input.indexOf(")")).trim();
+
+            // Extract the body of the 'if' block, starting after the first '{' and ending before the last '}'
+            String bodyPart = input.substring(input.indexOf("{") + 1, input.indexOf("}")).trim();
+
+            // Check if there's an 'else' part
+            String elsePart = "";
+            if (input.contains("else")) {
+                elsePart = input.substring(input.indexOf("else") + 4).trim();
+            }
+
+            // Evaluate the condition (true or false)
+            boolean condition = evaluateCondition(conditionPart);
+            if (condition) {
+                // Process the body if the condition is true
+                processCommand(bodyPart);
+            } else if (!elsePart.isEmpty()) {
+                // Process the 'else' body if the condition is false and there's an 'else' part
+                processCommand(elsePart);
+            }
         } else {
-            result = evaluateExpression(content); // Evaluate the expression if it's a literal or arithmetic expression
+            throw new IllegalArgumentException("Syntax error: Invalid if statement.");
         }
-
-        System.out.println(result); // Print the result (value of the variable or the literal)
     }
 
-    // Evaluates an expression (either a number, string, or arithmetic)
+
+
+
+
+    private boolean evaluateCondition(String condition) {
+        return comparisonEvaluator.evaluateComparison(condition);
+    }
+
     private Object evaluateExpression(String expression) {
         try {
-            // Check if the expression is a simple number or string
             if (expression.matches("-?\\d+")) {
-                return Integer.parseInt(expression); // Integer
+                return Integer.parseInt(expression);
             } else if (expression.matches("\".*\"")) {
-                return expression.substring(1, expression.length() - 1); // String
+                return expression.substring(1, expression.length() - 1);
             } else {
-                // Delegate to ArithmeticEvaluator for arithmetic expressions
                 return arithmeticEvaluator.evaluateArithmetic(expression);
             }
         } catch (Exception e) {
@@ -102,24 +161,54 @@ public class Reader {
         }
     }
 
-    // Displays the help message with supported commands
+    private void processVariableDeclaration(String input) {
+        String[] parts = input.substring(4).split("=");
+        if (parts.length != 2) {
+            System.out.println("Syntax error: Invalid variable declaration.");
+            return;
+        }
+
+        String name = parts[0].trim();
+        String value = parts[1].trim();
+        Object parsedValue = evaluateExpression(value);
+        variableStorage.setVariable(name, parsedValue);
+    }
+
+    private void processPrint(String input) {
+        if (!input.startsWith("print(") || !input.endsWith(")")) {
+            throw new IllegalArgumentException("Syntax error: Invalid print statement.");
+        }
+
+        String content = input.substring(6, input.length() - 1).trim();
+        Object result;
+
+        if (variableStorage.hasVariable(content)) {
+            result = variableStorage.getVariable(content);
+        } else {
+            result = evaluateExpression(content);
+        }
+
+        System.out.println(result);
+    }
+
     private void displayHelp() {
         System.out.println(
                 "Welcome to MiniKotlin Interpreter!\n" +
                         "Supported commands:\n" +
                         "- var <name> = <value> : Declare a variable.\n" +
                         "- print(<value>) : Print a value or variable.\n" +
+                        "- while(<condition>){ <statements>; } : Perform a loop.\n" +
                         "- list : List all stored variables.\n" +
                         "- help : Display this help message.\n" +
                         "- exit : Exit the interpreter."
         );
     }
 
-    // Exits the interpreter and prints a goodbye message
     private void exitInterpreter() {
         System.out.println("Exiting MiniKotlin Interpreter.");
-        System.exit(0); // Exit the program
+        System.exit(0);
     }
 }
+
 
 
