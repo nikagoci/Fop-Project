@@ -4,10 +4,12 @@ import java.util.Scanner;
 
 public class Reader {
     private final VariableStorage variableStorage; // Reference to the variable storage for managing variables
+    private final ArithmeticEvaluator arithmeticEvaluator; // Reference to the arithmetic evaluator
 
-    // Constructor to initialize the reader with the given VariableStorage
+    // Constructor to initialize the reader with the given VariableStorage and ArithmeticEvaluator
     public Reader(VariableStorage variableStorage) {
         this.variableStorage = variableStorage;
+        this.arithmeticEvaluator = new ArithmeticEvaluator(variableStorage); // Initialize the evaluator
     }
 
     // Starts the reader, reading and processing commands from the terminal
@@ -49,7 +51,7 @@ public class Reader {
         }
     }
 
-    // Processes a variable declaration command (example var x = 5)
+    // Processes a variable declaration command (example var x = a + b)
     private void processVariableDeclaration(String input) {
         String[] parts = input.substring(4).split("="); // Remove "var " prefix and split by "="
 
@@ -60,7 +62,7 @@ public class Reader {
 
         String name = parts[0].trim(); // Extract variable name
         String value = parts[1].trim(); // Extract the value to assign
-        Object parsedValue = parseValue(value); // Parse the value (integer or string)
+        Object parsedValue = evaluateExpression(value); // Evaluate the expression (arithmetic)
         variableStorage.setVariable(name, parsedValue); // Store the variable
     }
 
@@ -77,20 +79,26 @@ public class Reader {
         if (variableStorage.hasVariable(content)) {
             result = variableStorage.getVariable(content); // Fetch the variable value if it exists
         } else {
-            result = parseValue(content); // Parse and print the literal value
+            result = evaluateExpression(content); // Evaluate the expression if it's a literal or arithmetic expression
         }
 
         System.out.println(result); // Print the result (value of the variable or the literal)
     }
 
-    // Parses a value to determine its type integer or string
-    private Object parseValue(String value) {
-        if (value.matches("-?\\d+")) {
-            return Integer.parseInt(value); // Parse as integer if it's a number
-        } else if (value.startsWith("\"") && value.endsWith("\"")) {
-            return value.substring(1, value.length() - 1); // Parse as string by removing surrounding quotes
-        } else {
-            throw new IllegalArgumentException("Invalid value: " + value); // Handle invalid value
+    // Evaluates an expression (either a number, string, or arithmetic)
+    private Object evaluateExpression(String expression) {
+        try {
+            // Check if the expression is a simple number or string
+            if (expression.matches("-?\\d+")) {
+                return Integer.parseInt(expression); // Integer
+            } else if (expression.matches("\".*\"")) {
+                return expression.substring(1, expression.length() - 1); // String
+            } else {
+                // Delegate to ArithmeticEvaluator for arithmetic expressions
+                return arithmeticEvaluator.evaluateArithmetic(expression);
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid expression: " + expression);
         }
     }
 
@@ -113,4 +121,5 @@ public class Reader {
         System.exit(0); // Exit the program
     }
 }
+
 
