@@ -1,7 +1,8 @@
 package main;
 
-import utils.VariableStorage;
 import utils.Reader;
+import utils.VariableStorage;
+
 
 public class Interpreter {
     public static void main(String[] args) {

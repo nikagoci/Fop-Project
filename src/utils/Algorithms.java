@@ -31,4 +31,46 @@ public class Algorithms {
         }
         return true;
     }
+
+    public boolean palindromeChecker(int n) {
+        return n == reverse(n);
+    }
+
+    public int largestDigit(int n) {
+        int largest = 0;
+        while (n != 0) {
+            largest = Math.max(largest, n % 10);
+            n /= 10;
+        }
+        return largest;
+    }
+
+    public int sumOfDigits(int n) {
+        int sum = 0;
+        while (n != 0) {
+            sum += n % 10;
+            n /= 10;
+        }
+        return sum;
+    }
+
+    public String multiplicationTable(int n) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 1; i <= 10; i++) {
+            result.append(n).append(" x ").append(i).append(" = ").append(n * i).append("\n");
+        }
+        return result.toString();
+    }
+
+    public int fibonacciPos(int n) {
+        if (n <= 1) return n;
+        int a = 0, b = 1;
+        for (int i = 2; i <= n; i++) {
+            int temp = a + b;
+            a = b;
+            b = temp;
+        }
+        return b;
+    }
 }
+
