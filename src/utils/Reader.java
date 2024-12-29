@@ -49,7 +49,9 @@ public class Reader {
             variableStorage.listVariables();
         } else if (input.startsWith("factorial(") || input.startsWith("sumOfNumbers(") ||
                 input.startsWith("gcd(") || input.startsWith("reverse(") ||
-                input.startsWith("primeChecker(")) {
+                input.startsWith("primeChecker(") || input.startsWith("palindromeChecker(") ||
+                input.startsWith("largestDigit(") || input.startsWith("sumOfDigits(") ||
+                input.startsWith("multiplicationTable(") || input.startsWith("fibonacciPos(")) {
             processAlgorithm(input);
         } else if (input.equals("help")) {
             displayHelp();
@@ -96,6 +98,21 @@ public class Reader {
                     break;
                 case "primeChecker":
                     System.out.println(algorithms.primeChecker(Integer.parseInt(args[0].trim())));
+                    break;
+                case "palindromeChecker":
+                    System.out.println(algorithms.palindromeChecker(Integer.parseInt(args[0].trim())));
+                    break;
+                case "largestDigit":
+                    System.out.println(algorithms.largestDigit(Integer.parseInt(args[0].trim())));
+                    break;
+                case "sumOfDigits":
+                    System.out.println(algorithms.sumOfDigits(Integer.parseInt(args[0].trim())));
+                    break;
+                case "multiplicationTable":
+                    System.out.println(algorithms.multiplicationTable(Integer.parseInt(args[0].trim())));
+                    break;
+                case "fibonacciPos":
+                    System.out.println(algorithms.fibonacciPos(Integer.parseInt(args[0].trim())));
                     break;
                 default:
                     System.out.println("Error: Unknown algorithm.");
@@ -245,16 +262,14 @@ public class Reader {
                         "- largestDigit(a) : Finds the largest digit in a.\n" +
                         "- sumOfDigits(a) : Sums the digits of a.\n" +
                         "- multiplicationTable(a) : Prints multiplication table of a up to 10.\n" +
-                        "- fibonacciPos(a) : Compute Fibonacci number on position a.\n"
+                        "- fibonacciPos(a) : Compute Fibonacci number on position a.(starts counting from position 0)\n"
 
         );
     }
+
 
     private void exitInterpreter() {
         System.out.println("Exiting MiniKotlin Interpreter.");
         System.exit(0);
     }
 }
-
-
-
