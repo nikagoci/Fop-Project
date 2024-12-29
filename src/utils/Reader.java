@@ -1,17 +1,18 @@
 package utils;
 
 import java.util.Scanner;
-import utils.ComparisonEvaluator;
 
 public class Reader {
     private final VariableStorage variableStorage;
     private final ArithmeticEvaluator arithmeticEvaluator;
     private final ComparisonEvaluator comparisonEvaluator;
+    private final Algorithms algorithms;
 
     public Reader(VariableStorage variableStorage) {
         this.variableStorage = variableStorage;
         this.arithmeticEvaluator = new ArithmeticEvaluator(variableStorage);
         this.comparisonEvaluator = new ComparisonEvaluator(variableStorage);
+        this.algorithms = new Algorithms();
     }
 
     public void start() {
@@ -35,10 +36,9 @@ public class Reader {
         }
     }
 
-
     private void processCommand(String input) {
         if (input.startsWith("if")) {
-            processIfStatement(input);  // Route the if statement properly
+            processIfStatement(input);
         } else if (input.startsWith("while")) {
             processWhileLoop(input);
         } else if (input.startsWith("var ")) {
@@ -47,17 +47,20 @@ public class Reader {
             processPrint(input);
         } else if (input.equals("list")) {
             variableStorage.listVariables();
+        } else if (input.startsWith("factorial(") || input.startsWith("sumOfNumbers(") ||
+                input.startsWith("gcd(") || input.startsWith("reverse(") ||
+                input.startsWith("primeChecker(")) {
+            processAlgorithm(input);
         } else if (input.equals("help")) {
             displayHelp();
+        } else if(input.equals("methods")) {
+            displayMethods();
         } else if (input.equals("exit")) {
             exitInterpreter();
         } else {
             System.out.println("Error: Unknown command.");
         }
     }
-
-
-
 
     private void processAssignment(String input) {
         String[] parts = input.split("=");
@@ -72,6 +75,35 @@ public class Reader {
         variableStorage.setVariable(variableName, value);
     }
 
+    private void processAlgorithm(String input) {
+        try {
+            String command = input.substring(0, input.indexOf("("));
+            String params = input.substring(input.indexOf("(") + 1, input.indexOf(")"));
+            String[] args = params.split(",");
+
+            switch (command) {
+                case "sumOfNumbers":
+                    System.out.println(algorithms.sumOfNumbers(Integer.parseInt(args[0].trim())));
+                    break;
+                case "factorial":
+                    System.out.println(algorithms.factorial(Integer.parseInt(args[0].trim())));
+                    break;
+                case "gcd":
+                    System.out.println(algorithms.gcd(Integer.parseInt(args[0].trim()), Integer.parseInt(args[1].trim())));
+                    break;
+                case "reverse":
+                    System.out.println(algorithms.reverse(Integer.parseInt(args[0].trim())));
+                    break;
+                case "primeChecker":
+                    System.out.println(algorithms.primeChecker(Integer.parseInt(args[0].trim())));
+                    break;
+                default:
+                    System.out.println("Error: Unknown algorithm.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error in algorithm usage: " + e.getMessage());
+        }
+    }
 
     private void processWhileLoop(String input) {
         System.out.println("Processing while loop: " + input); // Debugging line
@@ -139,10 +171,6 @@ public class Reader {
         }
     }
 
-
-
-
-
     private boolean evaluateCondition(String condition) {
         return comparisonEvaluator.evaluateComparison(condition);
     }
@@ -200,7 +228,25 @@ public class Reader {
                         "- while(<condition>){ <statements>; } : Perform a loop.\n" +
                         "- list : List all stored variables.\n" +
                         "- help : Display this help message.\n" +
+                        "- methods : Display all methods.\n" +
                         "- exit : Exit the interpreter."
+        );
+    }
+
+    private void displayMethods() {
+        System.out.println(
+                "All avaliable methods!\n" +
+                        "- sumOfNumbers(a) : Integer sum from 1 to a \n" +
+                        "- factorial(a) : Factorial of a.\n" +
+                        "- gcd(a,b) : Greatest commond divisor of a and b.\n" +
+                        "- reverse(a) : Reverse digits of a.\n" +
+                        "- primeChecker(a) : Checks if a is prime.\n" +
+                        "- palindromeChecker(a) : Check if a is palindrome.\n" +
+                        "- largestDigit(a) : Finds the largest digit in a.\n" +
+                        "- sumOfDigits(a) : Sums the digits of a.\n" +
+                        "- multiplicationTable(a) : Prints multiplication table of a up to 10.\n" +
+                        "- fibonacciPos(a) : Compute Fibonacci number on position a.\n"
+
         );
     }
 
