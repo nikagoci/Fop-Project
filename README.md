@@ -9,8 +9,12 @@ Collaborators:
                Aleqsi Nakashidze( coder )
 
 Supported commands: 
-                         var <name> = <value> : Declare a variable.
-                         print(<value>) : Print a value or variable.
-                         list : List all stored variables.
-                         help : Display this help message.
-                         exit : Exit the interpreter.
+                         
+                        Supported commands:
+                        - var <name> = <value> : Declare a variable.
+                        - print(<value>) : Print a value or variable.
+                        - while(<condition>){ <statements>; } : Perform a loop.
+                        - list : List all stored variables.
+                        - help : Display this help message.
+                        - methods : Display all methods(The algorithms).
+                        - exit : Exit the interpreter.
